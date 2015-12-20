@@ -102,6 +102,45 @@ function hlpa{V}(g::AbstractGraph{V}; lammda::Float64=1.0)
     m
 end
 
+function hlpa{V}(g::AbstractGraph{V}, s::Vector{Float64}; lammda::Float64=1.0)
+    dominant_labels = Int[]
+    sizehint!(dominant_labels, 100)
+    label_cnt = Dict{Int, Float64}()
+    sizehint!(label_cnt, 200)
+    collapsed_edge_weights = Dict{Int,Float64}[]
+    sizehint!(collapsed_edge_weights, num_vertices(g))
+    collapsed_weights = Float64[]
+    sizehint!(collapsed_weights, num_edges(g))
+    m = hlpa(g, s, lammda, dominant_labels, label_cnt)
+    nb_comm1 = maximum(m)
+    h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
+    m1 = hlpa(h, collapsed_weights, lammda, dominant_labels, label_cnt)
+    from_coarser_partition!(m, m1)
+    nb_comm2 = maximum(m)
+
+    while nb_comm1 > nb_comm2
+        nb_comm1 = nb_comm2
+        h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
+        m1 = hlpa(h, collapsed_weights, lammda, dominant_labels, label_cnt)
+        from_coarser_partition!(m, m1)
+        nb1 = maximum(m)
+        h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
+        m1 = hlpa(h, collapsed_weights, lammda, dominant_labels, label_cnt)
+        from_coarser_partition!(m, m1)
+        nb2 = maximum(m)
+        h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
+        m1 = hlpa(h, collapsed_weights, lammda, dominant_labels, label_cnt)
+        from_coarser_partition!(m, m1)
+        nb3 = maximum(m)
+        h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
+        m1 = hlpa(h, collapsed_weights, lammda, dominant_labels, label_cnt)
+        from_coarser_partition!(m, m1)
+        nb4 = maximum(m)
+        nb_comm2 = (nb1+nb2+nb3+nb4)/4
+    end
+    m
+end
+
 function hlpa_record{V}(g::AbstractGraph{V}; lammda::Float64=1.0)
     label_rec = Vector{Int}[]
     graph_rec = typeof(g)[]
@@ -139,25 +178,75 @@ function hlpa_record{V}(g::AbstractGraph{V}; lammda::Float64=1.0)
         from_coarser_partition!(m, m1)
         nb1 = maximum(m)
         h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
-        push!(label_rec, m1)
-        push!(graph_rec, h)
-        push!(ew_rec, copy(collapsed_weights))
 
         m1 = hlpa(h, collapsed_weights, lammda, dominant_labels, label_cnt)
         from_coarser_partition!(m, m1)
         nb2 = maximum(m)
         h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
+        
+
+        m1 = hlpa(h, collapsed_weights, lammda, dominant_labels, label_cnt)
+        from_coarser_partition!(m, m1)
+        nb3 = maximum(m)
+        h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
+        
+
+        m1 = hlpa(h, collapsed_weights, lammda, dominant_labels, label_cnt)
+        from_coarser_partition!(m, m1)
+        nb4 = maximum(m)
+        nb_comm2 = (nb1+nb2+nb3+nb4)/4
+    end
+    m, label_rec, graph_rec, ew_rec
+end
+
+function hlpa_record{V}(g::AbstractGraph{V}, s::Vector{Float64}; lammda::Float64=1.0)
+    label_rec = Vector{Int}[]
+    graph_rec = typeof(g)[]
+    ew_rec = Vector{Float64}[]
+
+    dominant_labels = Int[]
+    sizehint!(dominant_labels, 100)
+    label_cnt = Dict{Int, Float64}()
+    sizehint!(label_cnt, 200)
+    collapsed_edge_weights = Dict{Int,Float64}[]
+    sizehint!(collapsed_edge_weights, num_vertices(g))
+    collapsed_weights = Float64[]
+    sizehint!(collapsed_weights, num_edges(g))
+
+    m = hlpa(g, s, lammda, dominant_labels, label_cnt)
+    nb_comm1 = maximum(m)
+    h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
+    push!(label_rec, m)
+    push!(graph_rec, h)
+    push!(ew_rec, copy(collapsed_weights))
+
+    m1 = hlpa(h, collapsed_weights, lammda, dominant_labels, label_cnt)
+    from_coarser_partition!(m, m1)
+    nb_comm2 = maximum(m)
+
+    while nb_comm1 > nb_comm2
+        nb_comm1 = nb_comm2
+        h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
         push!(label_rec, m1)
         push!(graph_rec, h)
         push!(ew_rec, copy(collapsed_weights))
 
         m1 = hlpa(h, collapsed_weights, lammda, dominant_labels, label_cnt)
         from_coarser_partition!(m, m1)
+        nb1 = maximum(m)
+        h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
+
+        m1 = hlpa(h, collapsed_weights, lammda, dominant_labels, label_cnt)
+        from_coarser_partition!(m, m1)
+        nb2 = maximum(m)
+        h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
+        
+
+        m1 = hlpa(h, collapsed_weights, lammda, dominant_labels, label_cnt)
+        from_coarser_partition!(m, m1)
         nb3 = maximum(m)
         h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
-        push!(label_rec, m1)
-        push!(graph_rec, h)
-        push!(ew_rec, copy(collapsed_weights))
+        
 
         m1 = hlpa(h, collapsed_weights, lammda, dominant_labels, label_cnt)
         from_coarser_partition!(m, m1)

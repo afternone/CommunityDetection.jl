@@ -167,7 +167,7 @@ function grp2msp(groups::Vector{Vector{Int}})
 end
 
 # similarity between two nodes of an edge, (num_common_neighbors+1) / (num_total_neighbors+1)
-function similarity{V,E}(g::AbstractGraph{V,E}, e::E, neivec::Vector{Bool})
+function similarity1{V,E}(g::AbstractGraph{V,E}, e::E, neivec::Vector{Bool})
     u = source(e, g)
     v = target(e, g)
     for u_nei in out_neighbors(u, g)
@@ -185,6 +185,37 @@ function similarity{V,E}(g::AbstractGraph{V,E}, e::E, neivec::Vector{Bool})
     end
     
     num_total_nei = out_degree(u,g) + out_degree(v,g) - num_common_nei
+    (num_common_nei + 2) / num_total_nei
+end
+
+function similarity1{V,E}(g::AbstractGraph{V,E})
+    neivec = fill(false, num_vertices(g))
+    Float64[similarity(g,e,neivec) for e in edges(g)]
+end
+
+function similarity{V,E}(g::AbstractGraph{V,E}, e::E, neivec::Vector{Bool})
+    u = source(e, g)
+    v = target(e, g)
+    u_deg = out_degree(u,g)
+    v_deg = out_degree(v,g)
+    if u_deg > v_deg
+    	u, v = v, u
+    end
+    for u_nei in out_neighbors(u, g)
+        neivec[u_nei] = true
+    end
+    num_common_nei = 0
+    for v_nei in out_neighbors(v, g)
+        if neivec[v_nei]
+            num_common_nei += 1
+        end
+    end
+    # reset neivec
+    for u_nei in out_neighbors(u, g)
+        neivec[u_nei] = false
+    end
+    
+    num_total_nei = u_deg + v_deg - num_common_nei
     (num_common_nei + 2) / num_total_nei
 end
 
