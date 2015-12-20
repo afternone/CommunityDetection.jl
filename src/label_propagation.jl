@@ -91,6 +91,7 @@ function nsdlpa{V}(g::AbstractGraph{V})
             end
         end
     end
+    permute_labels!(label)
     label
 end
 
@@ -110,5 +111,6 @@ function lpa{V}(g::AbstractGraph{V})
             end
         end
     end
+    permute_labels!(label)
     label
 end
