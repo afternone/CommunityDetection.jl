@@ -159,7 +159,7 @@ function hlpa_record{V}(g::AbstractGraph{V}; lammda::Float64=1.0)
     m = hlpa(g, s, lammda, dominant_labels, label_cnt)
     nb_comm1 = maximum(m)
     h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
-    push!(label_rec, m)
+    push!(label_rec, copy(m))
     push!(graph_rec, h)
     push!(ew_rec, copy(collapsed_weights))
 
@@ -216,7 +216,7 @@ function hlpa_record{V}(g::AbstractGraph{V}, s::Vector{Float64}; lammda::Float64
     m = hlpa(g, s, lammda, dominant_labels, label_cnt)
     nb_comm1 = maximum(m)
     h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
-    push!(label_rec, m)
+    push!(label_rec, copy(m))
     push!(graph_rec, h)
     push!(ew_rec, copy(collapsed_weights))
 
