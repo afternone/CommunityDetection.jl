@@ -120,7 +120,7 @@ function vote!(g, weights, m, c, u, lambda)
         end
     end
     # ties breaking randomly
-    range_shuffle!(1:c.neigh_last-1, c.neigh_pos)
+    # range_shuffle!(1:c.neigh_last-1, c.neigh_pos)
     for lbl in c.neigh_pos
       if c.neigh_cnt[lbl] == max_cnt
         return lbl
