@@ -30,7 +30,7 @@ include("Optimiser.jl")
 include("modularity.jl")
 
 include("label_propagation.jl")
-include("hlpa.jl")
+include("mlpa.jl")
 include("slpa.jl")
 include("MultiGreedy.jl")
 
