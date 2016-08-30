@@ -183,7 +183,7 @@ function similarity1{V,E}(g::AbstractGraph{V,E}, e::E, neivec::Vector{Bool})
     for u_nei in out_neighbors(u, g)
         neivec[vertex_index(u_nei,g)] = false
     end
-    
+
     num_total_nei = out_degree(u,g) + out_degree(v,g) - num_common_nei
     (num_common_nei + 2) / num_total_nei
 end
@@ -214,7 +214,7 @@ function similarity{V,E}(g::AbstractGraph{V,E}, e::E, neivec::Vector{Bool})
     for u_nei in out_neighbors(u, g)
         neivec[u_nei] = false
     end
-    
+
     num_total_nei = u_deg + v_deg - num_common_nei
     (num_common_nei + 2) / num_total_nei
 end
@@ -234,3 +234,59 @@ function num_common_neighbors{V,E}(g::AbstractGraph{V,E}, e::E)
 end
 
 num_common_neighbors{V,E}(g::AbstractGraph{V,E}) = Int[num_common_neighbors(g,e) for e in edges(g)]
+
+plog2p(x) = x > 0.0 ? x*log2(x) : 0.0
+function codelen(g,m)
+  ne = num_edges(g)
+  nc = maximum(m)
+  exit_ne = zeros(Int,nc)
+  inner_ne = zeros(Int,nc)
+  total_exit_ne = 0
+  for e in edges(g)
+    u = source(e, g)
+    v = target(e, g)
+    u_idx = vertex_index(u, g)
+    v_idx = vertex_index(v, g)
+    u_comm = m[u_idx]
+    v_comm = m[v_idx]
+    if u_comm != v_comm
+      exit_ne[u_comm] += 1
+      exit_ne[v_comm] += 1
+      total_exit_ne += 2
+    else
+      inner_ne[u_comm] += 2
+    end
+  end
+  L1 = plog2p(total_exit_ne/2ne)
+  L2 = -2sum([plog2p(x/2ne) for x in exit_ne])
+  L3 = -sum([plog2p(out_degree(v,g)/2ne) for v in vertices(g)])
+  L4 = sum([plog2p((exit_ne[i]+inner_ne[i])/2ne) for i=1:nc])
+  L1 + L2 + L3 + L4
+end
+
+function codelen1(g,m)
+  ne = num_edges(g)
+  nc = maximum(m)
+  exit_ne = zeros(Int,nc)
+  inner_ne = zeros(Int,nc)
+  total_exit_ne = 0
+  for u in vertices(g)
+    for v in out_neighbors(u,g)
+      u_idx = vertex_index(u, g)
+      v_idx = vertex_index(v, g)
+      u_comm = m[u_idx]
+      v_comm = m[v_idx]
+      if u_comm != v_comm
+        exit_ne[u_comm] += 1
+        total_exit_ne += 1
+      else
+        inner_ne[u_comm] += 2
+      end
+    end
+  end
+  L1 = plog2p(total_exit_ne/2ne)
+  L2 = -2sum([plog2p(x/2ne) for x in exit_ne])
+  L3 = -sum([plog2p(out_degree(v,g)/2ne) for v in vertices(g)])
+  L4 = sum([plog2p((exit_ne[i]+inner_ne[i])/2ne) for i=1:nc])
+  L1 + L2 + L3 + L4
+end
