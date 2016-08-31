@@ -13,7 +13,7 @@ export
     find_partition!,
     multi_greedy!,
     lpa, nsdlpa, hlpa, hlpa_record, slpa, getgrp,
-	nmi, nvoi, nminvoi, rnmi, modularity
+	nmi, nvoi, nminvoi, rnmi, modularity, conductance, min_conductance
 
 
 include("AbstractPartition.jl")
@@ -25,6 +25,7 @@ include("MGraph.jl")
 include("MPartition.jl")
 include("utils.jl")
 include("nmi.jl")
+include("metrics.jl")
 include("Optimiser.jl")
 
 include("modularity.jl")
