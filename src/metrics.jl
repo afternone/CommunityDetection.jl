@@ -46,7 +46,7 @@ function conductance(g, membership)
       end
     end
   end
-  ss, [ms[i]+cs[i] > 0 ? cs[i]/(ms[i]+cs[i]) : 1. for i=1:nc]
+  ss, [ms[i]+cs[i] > 0 ? cs[i]/(ms[i]+cs[i]) : 0. for i=1:nc]
 end
 
 function min_conductance(g, m)
