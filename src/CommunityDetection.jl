@@ -13,7 +13,12 @@ export
     find_partition!,
     multi_greedy!,
     lpa, nsdlpa, hlpa, hlpa_record, slpa, getgrp,
-	nmi, nvoi, nminvoi, rnmi, modularity, conductance, min_conductance
+	nmi, nvoi, nminvoi, rnmi, modularity, conductance, min_conductance,
+  internal_density, edges_inside, average_degree, fomd,
+  triangle_participation, triangle_participation_ratio, triangle_participation_ratio,
+  expansion, cut_ratio, normalized_cut, odf, max_odf, average_odf,
+  flake_odf, separability, density,
+  prob_metric_cluster, prob_metric_graph
 
 
 include("AbstractPartition.jl")
