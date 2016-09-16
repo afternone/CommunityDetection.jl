@@ -388,16 +388,8 @@ end
 
 """Calculate the confusion matrix"""
 function confusion_matrix(labels_true, labels_pred)
-    
-
-
-
-
-
-
-
-
-
+    #TO DO
+end
 
 """The rand index is the ratio of the number of node
 pairs correctly classified in both partitions"""
