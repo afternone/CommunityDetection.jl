@@ -370,15 +370,6 @@ end
     This metric measures how likely a particle placed on some vertex will stay within
     the original community after n random steps, where n is the number of vertices in
     the community (or some other, better value for normalization).
-    This returns a list [(mean, variance)_0, (mean, variance)_1..., (mean, variance)_n]
-    where the statistics within each cluster are represented by its index in the list.
-    A high mean suggests strong community structure, but a high variance suggests that
-    a few objects in the community might be outliers and not necessarily belong.
-
-    Currently, we use the size of the community as the number of steps taken, but this
-    isn't based on much theory. Some analysis is necessary to find a better choice for n.
-    If you want one "score" to score the clustering instead of individual communities,
-    call probability_metric_score instead.
 """
 function prob_metric_graph(g, membership)
   nc = maximum(membership)
@@ -394,3 +385,20 @@ function prob_metric_graph(g, membership)
   end
   full_mean, full_std, full_var
 end
+
+"""Calculate the confusion matrix"""
+function confusion_matrix(labels_true, labels_pred)
+    
+
+
+
+
+
+
+
+
+
+
+"""The rand index is the ratio of the number of node
+pairs correctly classified in both partitions"""
+function rand_index(g, membership)
