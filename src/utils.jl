@@ -79,7 +79,7 @@ function entropy(membership::Vector{Int})
     h
 end
 
-function entropy{V}(partition::AbstractPartition{V})
+function entropy(partition)
     g = graph(partition)
     n = num_vertices(g)
     h = 0.0
@@ -91,49 +91,88 @@ function entropy{V}(partition::AbstractPartition{V})
 end
 
 """read groups from file"""
-function readgrp(filename)
+function readgrp(fname)
     groups = Vector{Int}[]
-    f = open(filename, "r")
-    for ll in eachline(f)
-        push!(groups, [parse(Int, i) for i in split(chomp(ll))])
+    open(fname,"r") do f
+        for line in eachline(f)
+            # skip the comment and blank lines
+            if line[1] != '#' && !isempty(line)
+                push!(groups, [parse(Int, i) for i in split(chomp(line))])
+            end
+        end
     end
     groups
 end
 
-"""write groups to file"""
-function writegrp(filename, groups::Vector{Vector{Int}})
-    f = open(filename, "w")
-    for i=1:length(groups)
-        for j=1:length(groups[i])-1
-            print(f, groups[i][j],' ')
+function grp2pat(groups::Vector{Vector{Int}})
+    membership = grp2msp(groups)
+    collect(keys(membership)), [membership[j][findmax([length(groups[grp]) for grp in membership[j]])[2]] for j in keys(membership)]
+end
+
+function iLCD_readgrp(fname)
+    groups = Vector{Int}[]
+    open(fname, "r") do f
+        for line in eachline(f)
+            if !isempty(line) && line[1] != '#'
+                push!(groups, [parse(Int,i) for i in split(chomp(line))[3:end]])
+            end
         end
-        print(f, groups[i][end],'\n')
     end
-    close(f)
+    groups
+end
+
+function genlnd(fname)
+	fout = open(fname*".lnd", "w")
+	open(fname,"r") do f
+		i = 1
+		for line in eachline(f)
+			if !isempty(line) && line[1] != '#'
+				items = split(line)
+				println(fout, i, '\t', '+', '\t', items[1],'\t',items[2])
+				i += 1
+			end
+		end
+	end
+	close(fout)
+end
+
+"""write groups to file"""
+function writegrp(fname, groups::Vector{Vector{Int}})
+    open(fname,"w") do f
+        for i=1:length(groups)
+            for j=1:length(groups[i])-1
+                print(f, groups[i][j],' ')
+            end
+            print(f, groups[i][end],'\n')
+        end
+    end
 end
 
 """read membership from file"""
-function readmsp(filename)
+function readmsp(fname)
     membership = Dict{Int, Vector{Int}}()
-    f = open(filename, "r")
-    for ll in eachline(f)
-        entries = [parse(Int, i) for i in split(chomp(ll))]
-        membership[entries[1]] = entries[2:end]
+    open(fname,"r") do f
+        for line in eachline(f)
+            if line[1] != '#' && !isempty(line)
+                entries = [parse(Int, i) for i in split(chomp(line))]
+                membership[entries[1]] = entries[2:end]
+            end
+        end
     end
     membership
 end
 
 """write membership to file"""
-function writemsp(filename, membership::Dict{Int, Vector{Int}})
-    f = open(filename, "w")
-    for k in sort(collect(keys(membership)))
-        print(f, k, '\t')
-        for j=1:length(membership[k])-1
-            print(f, membership[k][j], ' ')
+function writemsp(fname, membership::Dict{Int,Vector{Int}})
+    open(fname,"w") do f
+        for k in sort(collect(keys(membership)))
+            print(f, k, '\t')
+            for j=1:length(membership[k])-1
+                print(f, membership[k][j], ' ')
+            end
+            print(f, membership[k][end], '\n')
         end
-        print(f, membership[k][end], '\n')
     end
-    close(f)
 end
 
 """transform membership to groups"""
@@ -166,8 +205,10 @@ function grp2msp(groups::Vector{Vector{Int}})
     membership
 end
 
+grp2msp(fname) = grp2msp(readgrp(fname))
+
 # similarity between two nodes of an edge, (num_common_neighbors+1) / (num_total_neighbors+1)
-function similarity1{V,E}(g::AbstractGraph{V,E}, e::E, neivec::Vector{Bool})
+function similarity1(g, e, neivec::Vector{Bool})
     u = source(e, g)
     v = target(e, g)
     for u_nei in out_neighbors(u, g)
@@ -183,17 +224,17 @@ function similarity1{V,E}(g::AbstractGraph{V,E}, e::E, neivec::Vector{Bool})
     for u_nei in out_neighbors(u, g)
         neivec[vertex_index(u_nei,g)] = false
     end
-    
+
     num_total_nei = out_degree(u,g) + out_degree(v,g) - num_common_nei
     (num_common_nei + 2) / num_total_nei
 end
 
-function similarity1{V,E}(g::AbstractGraph{V,E})
+function similarity1(g)
     neivec = fill(false, num_vertices(g))
     Float64[similarity(g,e,neivec) for e in edges(g)]
 end
 
-function similarity{V,E}(g::AbstractGraph{V,E}, e::E, neivec::Vector{Bool})
+function similarity(g, e, neivec::Vector{Bool})
     u = source(e, g)
     v = target(e, g)
     u_deg = out_degree(u,g)
@@ -214,18 +255,18 @@ function similarity{V,E}(g::AbstractGraph{V,E}, e::E, neivec::Vector{Bool})
     for u_nei in out_neighbors(u, g)
         neivec[u_nei] = false
     end
-    
+
     num_total_nei = u_deg + v_deg - num_common_nei
     (num_common_nei + 2) / num_total_nei
 end
 
-function similarity{V,E}(g::AbstractGraph{V,E})
+function similarity(g)
     neivec = fill(false, num_vertices(g))
     Float64[similarity(g,e,neivec) for e in edges(g)]
 end
 
 # number of common neighbors between two nodes of an edge
-function num_common_neighbors{V,E}(g::AbstractGraph{V,E}, e::E)
+function num_common_neighbors(g, e)
   u = source(e, g)
   v = target(e, g)
   u_nei = out_neighbors(u, g)
@@ -233,4 +274,4 @@ function num_common_neighbors{V,E}(g::AbstractGraph{V,E}, e::E)
   length(intersect(u_nei, v_nei))
 end
 
-num_common_neighbors{V,E}(g::AbstractGraph{V,E}) = Int[num_common_neighbors(g,e) for e in edges(g)]
+num_common_neighbors(g) = Int[num_common_neighbors(g,e) for e in edges(g)]
