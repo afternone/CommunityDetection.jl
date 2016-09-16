@@ -1,3 +1,4 @@
+using PyCall
 plog2p(x) = x > 0.0 ? x*log2(x) : 0.0
 function codelen(g,m)
   ne = num_edges(g)
@@ -386,11 +387,92 @@ function prob_metric_graph(g, membership)
   full_mean, full_std, full_var
 end
 
-"""Calculate the confusion matrix"""
-function confusion_matrix(labels_true, labels_pred)
-    #TO DO
+function pair_count(x, y)
+  n = length(x)
+  a11, a01, a10, a00 = 0, 0, 0, 0
+  for i=1:n-1,j=i+1:n
+    if x[i]==x[j] && y[i]==y[j]
+      a11 += 1
+    end
+    if x[i]==x[j] && y[i]!=y[j]
+      a01 += 1
+    end
+    if x[i]!=x[j] && y[i]==y[j]
+      a10 += 1
+    end
+    if x[i]!=x[j] && y[i]!=y[j]
+      a00 += 1
+    end
+  end
+  a11, a01, a10, a00
 end
 
-"""The rand index is the ratio of the number of node
-pairs correctly classified in both partitions"""
-function rand_index(g, membership)
+function rand_index(x, y)
+  a11, a01, a10, a00 = pair_count(x,y)
+  (a11+a00)/(a11+a01+a10+a00)
+end
+
+function mirkin_metric(x, y)
+  a11, a01, a10, a00 = pair_count(x,y)
+  2*(a01+a10)
+end
+
+function jaccard_index(x,y)
+  a11, a01, a10, a00 = pair_count(x,y)
+  a11 > 0 ? a11/(a11+a01+a10) : 0.
+end
+
+function adjusted_rand_index(x,y)
+  @pyimport sklearn.metrics.cluster as smc
+  smc.adjusted_rand_score(x,y)
+end
+
+function precision(x,y)
+  @pyimport sklearn.metrics as sm
+  sm.precision_score(x,y)
+end
+
+function f1_score(x,y)
+  @pyimport sklearn.metrics as sm
+  sm.f1_score(x,y)
+end
+
+function fbeta_score(x,y,beta)
+  @pyimport sklearn.metrics as sm
+  sm.fbeta_score(x,y,beta)
+end
+ 
+function recall(x,y)
+  @pyimport sklearn.metrics as sm
+  sm.recall_score(x,y)
+end
+
+function classification_report(x,y)
+  @pyimport sklearn.metrics as sm
+  print(sm.classification_report(x,y))
+end
+
+function confusion_matrix(x,y)
+  @pyimport sklearn.metrics as sm
+  sm.confusion_matrix(x,y)
+end
+
+function jaccard_similarity(x,y)
+  @pyimport sklearn.metrics as sm
+  sm.jaccard_similarity_score(x,y)
+end
+
+function hamming_loss(x,y)
+  @pyimport sklearn.metrics as sm
+  sm.hamming_loss(x,y)
+end
+
+function accuracy(x,y)
+  @pyimport sklearn.metrics as sm
+  sm.accuracy_score(x,y)
+end
+
+function adjusted_mutual_info_score(x,y)
+  @pyimport sklearn.metrics.cluster as smc
+  smc.adjusted_mutual_info_score(x,y)
+end
