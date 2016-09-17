@@ -13,7 +13,16 @@ export
     find_partition!,
     multi_greedy!,
     lpa, nsdlpa, hlpa, hlpa_record, slpa, getgrp,
-	nmi, nvoi, nminvoi, rnmi, modularity, conductance, min_conductance
+	nmi, nvoi, nminvoi, rnmi, modularity, conductance, min_conductance,
+  internal_density, edges_inside, average_degree, fomd,
+  triangle_participation, triangle_participation_ratio, triangle_participation_ratio,
+  expansion, cut_ratio, normalized_cut, odf, max_odf, average_odf,
+  flake_odf, separability, density,
+  prob_metric_cluster, prob_metric_graph, pair_count, rand_index,
+  mirkin_metric, jaccard_index, adjusted_rand_index,
+  precision, f1_score, fbeta_score, recall, classification_report,
+  confusion_matrix, jaccard_similarity, hamming_loss, accuracy,
+  adjusted_mutual_info_score
 
 
 include("AbstractPartition.jl")
