@@ -120,6 +120,11 @@ function ns_ms_cs(g, membership)
   ns, ms, cs
 end
 
+function coverage(g, membership)
+  ns, ms, cs = ns_ms_cs(g, membership)
+  sum(ms)/num_edges(g)
+end
+
 function internal_density(g, membership)
   ns, ms, cs = ns_ms_cs(g, membership)
   ns, [ns[i] > 1 ? 2*ms[i]/ns[i]/(ns[i]-1) : 0. for i=1:length(ns)]
@@ -463,7 +468,7 @@ function fbeta_score(x,y,beta)
   @pyimport sklearn.metrics as sm
   sm.fbeta_score(x,y,beta)
 end
- 
+
 function recall(x,y)
   @pyimport sklearn.metrics as sm
   sm.recall_score(x,y)
@@ -497,4 +502,14 @@ end
 function adjusted_mutual_info_score(x,y)
   @pyimport sklearn.metrics.cluster as smc
   smc.adjusted_mutual_info_score(x,y)
+end
+
+function mutual_info_score(x,y)
+  @pyimport sklearn.metrics.cluster as smc
+  smc.mutual_info_score(x,y)
+end
+
+function normalized_mutual_info_score(x,y)
+  @pyimport sklearn.metrics.cluster as smc
+  smc.normalized_mutual_info_score(x,y)
 end
