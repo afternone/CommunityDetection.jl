@@ -192,7 +192,11 @@ function label_propagation_record!(g, weights, lambda, label, c, random_order, a
             u = random_order[j]
             old_comm = label[u]
             label[u] = vote!(g, weights, label, c, u, lambda)
-            push!(Q_rec, modularity(g,label,weights))
+            if minimum(weights) < 1.
+                push!(Q_rec, modularity(g,label))
+            else
+                push!(Q_rec, modularity(g,label,weights))
+            end
             if old_comm != label[u]
                 for v in out_neighbors(u, g)
                     push!(active_nodes, v)
