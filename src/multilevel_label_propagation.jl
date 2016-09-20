@@ -1,17 +1,15 @@
-using Graphs
-
-function hlpa{V}(g::AbstractGraph{V}; lambda::Float64=1.0)
+hlpa(g; lambda=1.0) = hlpa(g, similarity(g); lambda=1.0)
+function hlpa{V}(g::AbstractGraph{V}, s::Vector{Float64}; lambda::Float64=1.0)
     tempi = 0
     n = num_vertices(g)
     c = NeighComm(collect(1:n), fill(-1.,n), 1)
     random_order = Array(Int,n)
     collapsed_edge_weights = Dict{Int,Float64}[]
     sizehint!(collapsed_edge_weights, n)
-    collapsed_weights = Float64[]
+    collapsed_weights = fill(1.0,num_edges(g))
     sizehint!(collapsed_weights, num_edges(g))
     active_nodes = IntSet()
     sizehint!(active_nodes,n)
-    s = similarity(g)
     m = Array(Int,n)
     m1 = Array(Int,n)
     sizehint!(m,n)
@@ -27,13 +25,62 @@ function hlpa{V}(g::AbstractGraph{V}; lambda::Float64=1.0)
 
     while nb_comm1 > nb_comm2
         nb_comm1 = nb_comm2
-        h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
+        h = collapse_graph(h, m1, collapsed_edge_weights, collapsed_weights)
         label_propagation!(h, collapsed_weights, lambda, m1, c, random_order, active_nodes)
         tempi += 1
         from_coarser_partition!(m, m1)
         nb_comm2 = maximum(m)
     end
     m,tempi
+end
+
+hlpa_record(g; lambda=1.0) = hlpa_record(g, similarity(g); lambda=1.0)
+function hlpa_record{V}(g::AbstractGraph{V}, s::Vector{Float64}; lambda::Float64=1.0)
+    label_rec = Vector{Int}[]
+    graph_rec = typeof(g)[]
+    ew_rec = Vector{Float64}[]
+    level_node_num = Int[]
+
+    n = num_vertices(g)
+    c = NeighComm(collect(1:n), fill(-1.,n), 1)
+    random_order = Array(Int,n)
+    collapsed_edge_weights = Dict{Int,Float64}[]
+    sizehint!(collapsed_edge_weights, n)
+    collapsed_weights = fill(1.0,num_edges(g))
+    sizehint!(collapsed_weights, num_edges(g))
+    active_nodes = IntSet()
+    sizehint!(active_nodes,n)
+    m = Array(Int,n)
+    m1 = Array(Int,n)
+    sizehint!(m,n)
+    sizehint!(m1,n)
+    push!(label_rec, collect(1:n))
+    push!(graph_rec, g)
+    push!(ew_rec, copy(collapsed_weights))
+    push!(level_node_num, num_vertices(g))
+    label_propagation!(g, s, lambda, m, c, random_order, active_nodes)
+    h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
+    push!(label_rec, copy(m))
+    push!(graph_rec, h)
+    push!(ew_rec, copy(collapsed_weights))
+    push!(level_node_num, num_vertices(h))
+    nb_comm1 = maximum(m)
+    label_propagation!(h, collapsed_weights, lambda, m1, c, random_order, active_nodes)
+    from_coarser_partition!(m, m1)
+    nb_comm2 = maximum(m)
+
+    while nb_comm1 > nb_comm2
+        nb_comm1 = nb_comm2
+        h = collapse_graph(h, m, collapsed_edge_weights, collapsed_weights)
+        push!(label_rec, copy(m1))
+        push!(graph_rec, h)
+        push!(ew_rec, copy(collapsed_weights))
+        push!(level_node_num, num_vertices(h))
+        label_propagation!(h, collapsed_weights, lambda, m1, c, random_order, active_nodes)
+        from_coarser_partition!(m, m1)
+        nb_comm2 = maximum(m)
+    end
+    m, label_rec, graph_rec, ew_rec, level_node_num
 end
 
 """
@@ -81,7 +128,83 @@ function label_propagation!(g, weights, lambda, label, c, random_order, active_n
     end
     fill!(c.neigh_pos, 0)
     renumber_labels!(label, c.neigh_pos)
-    label
+end
+
+hlpa_record_Q(g; lambda=1.0) = hlpa_record_Q(g, similarity(g); lambda=1.0)
+function hlpa_record_Q{V}(g::AbstractGraph{V}, s::Vector{Float64}; lambda::Float64=1.0)
+    Q = Float64[]
+    n = num_vertices(g)
+    c = NeighComm(collect(1:n), fill(-1.,n), 1)
+    random_order = Array(Int,n)
+    collapsed_edge_weights = Dict{Int,Float64}[]
+    sizehint!(collapsed_edge_weights, n)
+    collapsed_weights = fill(1.0,num_edges(g))
+    sizehint!(collapsed_weights, num_edges(g))
+    active_nodes = IntSet()
+    sizehint!(active_nodes,n)
+    m = Array(Int,n)
+    m1 = Array(Int,n)
+    sizehint!(m,n)
+    sizehint!(m1,n)
+    append!(Q, label_propagation_record!(g, s, lambda, m, c, random_order, active_nodes))
+    nb_comm1 = maximum(m)
+    h = collapse_graph(g, m, collapsed_edge_weights, collapsed_weights)
+    append!(Q, label_propagation_record!(h, collapsed_weights, lambda, m1, c, random_order, active_nodes))
+    from_coarser_partition!(m, m1)
+    nb_comm2 = maximum(m)
+
+    while nb_comm1 > nb_comm2
+        nb_comm1 = nb_comm2
+        h = collapse_graph(h, m1, collapsed_edge_weights, collapsed_weights)
+        append!(Q, label_propagation_record!(h, collapsed_weights, lambda, m1, c, random_order, active_nodes))
+        from_coarser_partition!(m, m1)
+        nb_comm2 = maximum(m)
+    end
+    m,Q
+end
+
+function label_propagation_record!(g, weights, lambda, label, c, random_order, active_nodes; maxiter=1000)
+    Q_rec = Float64[]
+    n = num_vertices(g)
+    #label = collect(1:n)
+    resize!(label,n)
+    empty!(active_nodes)
+    for i=1:n
+        label[i] = i
+        c.neigh_cnt[i] = -1.
+        push!(active_nodes,i)
+    end
+    c.neigh_last = 1
+    #active_nodes = IntSet(vertices(g))
+    #c = NeighComm(collect(1:n), fill(-1.,n), 1)
+    #random_order = Array(Int, n)
+    i = 0
+    while !isempty(active_nodes) && i < maxiter
+      num_active = length(active_nodes)
+        i += 1
+
+        # processing nodes in random order
+        for (j,node) in enumerate(active_nodes)
+            random_order[j] = node
+        end
+        range_shuffle!(1:num_active, random_order)
+        @inbounds for j=1:num_active
+            u = random_order[j]
+            old_comm = label[u]
+            label[u] = vote!(g, weights, label, c, u, lambda)
+            push!(Q_rec, modularity(g,label,weights))
+            if old_comm != label[u]
+                for v in out_neighbors(u, g)
+                    push!(active_nodes, v)
+                end
+            else
+                delete!(active_nodes, u)
+            end
+        end
+    end
+    fill!(c.neigh_pos, 0)
+    renumber_labels!(label, c.neigh_pos)
+    Q_rec
 end
 
 """Type to record neighbor labels and their counts."""
@@ -169,6 +292,7 @@ function collapse_graph{V}(g::AbstractGraph{V}, membership::Vector{Int},
     end
 
     for e in edges(g)
+        e_idx = edge_index(e,g)
         u = source(e,g)
         v = target(e,g)
         u_idx = vertex_index(u,g)
@@ -182,9 +306,9 @@ function collapse_graph{V}(g::AbstractGraph{V}, membership::Vector{Int},
         end
 
         if haskey(collapsed_edge_weights[u_comm], v_comm)
-            collapsed_edge_weights[u_comm][v_comm] += 1
+            collapsed_edge_weights[u_comm][v_comm] += collapsed_weights[e_idx]
         else
-            collapsed_edge_weights[u_comm][v_comm] = 1
+            collapsed_edge_weights[u_comm][v_comm] = collapsed_weights[e_idx]
         end
     end
 
@@ -254,35 +378,4 @@ function from_coarser_partition!(membership::Vector{Int}, coarser_membership::Ve
         u_comm_level2 = coarser_membership[u_comm_level1]
         membership[u] = u_comm_level2
     end
-end
-
-function similarity(g, e, neivec::Vector{Bool})
-    u = source(e, g)
-    v = target(e, g)
-    u_deg = out_degree(u,g)
-    v_deg = out_degree(v,g)
-    if u_deg > v_deg
-    	u, v = v, u
-    end
-    for u_nei in out_neighbors(u, g)
-        neivec[u_nei] = true
-    end
-    num_common_nei = 0
-    for v_nei in out_neighbors(v, g)
-        if neivec[v_nei]
-            num_common_nei += 1
-        end
-    end
-    # reset neivec
-    for u_nei in out_neighbors(u, g)
-        neivec[u_nei] = false
-    end
-
-    num_total_nei = u_deg + v_deg - num_common_nei
-    (num_common_nei + 2) / num_total_nei
-end
-
-function similarity(g)
-    neivec = fill(false, num_vertices(g))
-    Float64[similarity(g,e,neivec) for e in edges(g)]
 end

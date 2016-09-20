@@ -21,8 +21,8 @@ function modularity{V,T<:Real}(graph::AbstractGraph{V}, membership::Vector{Int},
         for i in edges(graph)
             w = weights[edge_index(i, graph)]
             w >= 0 || error("negative weight in weight vector")
-            c1 = membership[vertex_index(source(graph, i), graph)]
-            c2 = membership[vertex_index(target(graph, i), graph)]
+            c1 = membership[vertex_index(source(i, graph), graph)]
+            c2 = membership[vertex_index(target(i, graph), graph)]
             if c1 == c2
                 e[c1] += 2w
             end
