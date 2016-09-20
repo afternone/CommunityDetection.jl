@@ -110,7 +110,7 @@ function vote!(g, weights, m, c, u, lambda)
       end
         neigh_comm = m[neigh]
         if c.neigh_cnt[neigh_comm] < 0
-            c.neigh_cnt[neigh_comm] = 0
+            c.neigh_cnt[neigh_comm] = 0.
             c.neigh_pos[c.neigh_last] = neigh_comm
             c.neigh_last += 1
         end
@@ -122,7 +122,7 @@ function vote!(g, weights, m, c, u, lambda)
     # ties breaking randomly
     # range_shuffle!(1:c.neigh_last-1, c.neigh_pos)
     for lbl in c.neigh_pos
-      if c.neigh_cnt[lbl] == max_cnt
+      if c.neigh_cnt[lbl] >= max_cnt
         return lbl
       end
     end
