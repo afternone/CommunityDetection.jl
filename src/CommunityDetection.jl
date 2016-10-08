@@ -22,7 +22,8 @@ export
   mirkin_metric, jaccard_index, adjusted_rand_index,
   f1_score, fbeta_score, recall, classification_report,
   confusion_matrix, jaccard_similarity, hamming_loss, accuracy,
-  adjusted_mutual_info_score, mutual_info_score, normalized_mutual_info_score
+  adjusted_mutual_info_score, mutual_info_score, normalized_mutual_info_score,
+  modularity_density
 
 
 include("AbstractPartition.jl")
@@ -43,5 +44,6 @@ include("label_propagation.jl")
 include("mlpa.jl")
 include("slpa.jl")
 include("MultiGreedy.jl")
+include("modularity_density.jl")
 
 end # module
