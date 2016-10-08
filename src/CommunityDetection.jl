@@ -12,7 +12,7 @@ export
     optimize_partition!,
     find_partition!,
     multi_greedy!,
-    lpa, nsdlpa, hlpa, hlpa_record, slpa, getgrp,
+    lpa, nsdlpa, hlpa, hlpa_record, hlpa_record_Q, slpa, getgrp,
 	nmi, nvoi, nminvoi, rnmi, modularity, conductance, min_conductance,
   internal_density, edges_inside, average_degree, fomd,
   triangle_participation, triangle_participation_ratio, triangle_participation_ratio,
@@ -41,7 +41,8 @@ include("Optimiser.jl")
 include("modularity.jl")
 
 include("label_propagation.jl")
-include("mlpa.jl")
+#include("mlpa.jl")
+include("multilevel_label_propagation.jl")
 include("slpa.jl")
 include("MultiGreedy.jl")
 include("modularity_density.jl")
