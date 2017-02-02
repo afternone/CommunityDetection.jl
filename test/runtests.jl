@@ -12,5 +12,5 @@ add_edge!(g, 5, 6)
 add_edge!(g, 6, 4)
 
 mp = mpartition(g)
-optimize_partition(mp)
+optimize_partition!(mp)
 @test nmi(mp.membership, [1,1,1,2,2,2]) == 1.0

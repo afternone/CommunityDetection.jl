@@ -125,14 +125,14 @@ For simply finding a partition use:
 ```
 # construct modularity partition
 mp = mpartition(g)
-optimize_partition(mp)
+optimize_partition!(mp)
 ```
 
 In case you want to use a weighted graph
 ```
 edge_weights = ones(num_edge(g))
 mp = mpartition(g, edge_weights)
-optimize_partition(mp)
+optimize_partition!(mp)
 ```
 Please note that not all methods are necessarily capable of handling weighted
 graphs.
@@ -146,14 +146,14 @@ You can also find partition using infomap algorithm
 ```
 # construct flow partition
 fp = flow_partition(g)
-optimize_partition(fp)
+optimize_partition!(fp)
 ```
 
 Some other examples
 ```
 # Significance method
 mp = mpartition(g)
-optimize_partition(mp, method = :Significance)
+optimize_partition!(mp, method = :Significance)
 
 # label propagation
 membership1 = lpa(g)
