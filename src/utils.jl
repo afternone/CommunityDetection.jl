@@ -121,6 +121,23 @@ function iLCD_readgrp(fname)
     groups
 end
 
+"""consider the each omit node as a single community"""
+function iLCD_grp2pat(groups::Vector{Vector{Int}}, n)
+    membership = grp2msp(groups)
+    m = maximum(maximum(i) for i in values(membership))
+    x = Array(Int, n)
+    for j=1:n
+        if haskey(membership, j)
+            x[j] = membership[j][findmax([length(groups[grp]) for grp in membership[j]])[2]]
+        else
+            m += 1
+            x[j] = m
+        end
+    end
+    permute_labels!(x)
+    x
+end
+
 function genlnd(fname)
 	fout = open(fname*".lnd", "w")
 	open(fname,"r") do f
