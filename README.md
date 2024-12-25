@@ -12,7 +12,7 @@ of millions of nodes (as long as they can fit in memory).
 
 
 The core function is 
-``optimize_partition`` which finds the optimal partition using the louvain algorithm
+``optimize_partition!`` which finds the optimal partition using the louvain algorithm
 for a number of different methods. The methods currently implemented are:
 
 * Modularity.
